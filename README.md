@@ -1,0 +1,342 @@
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+
+local Config = {
+    Master = true,
+    PlayerESP = true,
+    ItemESP = true,
+    NPC_ESP = true,
+    ShowNames = true,
+    ShowDistance = true
+}
+
+local Theme = {
+    Background = Color3.fromRGB(15, 15, 18),
+    Foreground = Color3.fromRGB(25, 25, 30),
+    Accent = Color3.fromRGB(255, 0, 200),
+    Text = Color3.fromRGB(240, 240, 240),
+    PlayerColor = Color3.fromRGB(255, 50, 50),
+    ItemColor = Color3.fromRGB(50, 200, 255),
+    NPCColor = Color3.fromRGB(255, 255, 0)
+}
+
+if CoreGui:FindFirstChild("Forsekan_Master_ESP") then
+    CoreGui.Forsekan_Master_ESP:Destroy()
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "Forsekan_Master_ESP"
+ScreenGui.Parent = CoreGui
+ScreenGui.ResetOnSpawn = false
+
+-- Loading Animation Text
+local LoadingText = Instance.new("TextLabel")
+LoadingText.Size = UDim2.new(1, 0, 0, 50)
+LoadingText.Position = UDim2.new(0, 0, 0.5, -25)
+LoadingText.BackgroundTransparency = 1
+LoadingText.Text = "Loading Master ESP"
+LoadingText.TextColor3 = Theme.Accent
+LoadingText.TextStrokeTransparency = 0.8
+LoadingText.Font = Enum.Font.GothamBold
+LoadingText.TextSize = 35
+LoadingText.ZIndex = 11
+LoadingText.Parent = ScreenGui
+
+-- Main Menu
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 240, 0, 340)
+MainFrame.Position = UDim2.new(0.5, -120, -0.5, 0) -- Hidden initially
+MainFrame.BackgroundColor3 = Theme.Background
+MainFrame.BorderSizePixel = 0
+MainFrame.Visible = false
+MainFrame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.Parent = MainFrame
+
+local Topbar = Instance.new("Frame")
+Topbar.Size = UDim2.new(1, 0, 0, 40)
+Topbar.BackgroundColor3 = Theme.Foreground
+Topbar.BorderSizePixel = 0
+Topbar.Parent = MainFrame
+
+local TopbarCorner = Instance.new("UICorner")
+TopbarCorner.CornerRadius = UDim.new(0, 12)
+TopbarCorner.Parent = Topbar
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -40, 1, 0)
+Title.Position = UDim2.new(0, 15, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "FORSEKAN MASTER ESP"
+Title.TextColor3 = Theme.Accent
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 14
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = Topbar
+
+local ExitButton = Instance.new("TextButton")
+ExitButton.Size = UDim2.new(0, 40, 0, 40)
+ExitButton.Position = UDim2.new(1, -40, 0, 0)
+ExitButton.BackgroundTransparency = 1
+ExitButton.Text = "×"
+ExitButton.TextColor3 = Theme.Text
+ExitButton.TextSize = 25
+ExitButton.Font = Enum.Font.GothamBold
+ExitButton.Parent = Topbar
+
+local Content = Instance.new("ScrollingFrame")
+Content.Size = UDim2.new(1, -20, 1, -50)
+Content.Position = UDim2.new(0, 10, 0, 45)
+Content.BackgroundTransparency = 1
+Content.BorderSizePixel = 0
+Content.ScrollBarThickness = 0
+Content.Parent = MainFrame
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0, 8)
+UIListLayout.Parent = Content
+
+local function CreateToggle(name, defaultState, configKey)
+    local ToggleFrame = Instance.new("Frame")
+    ToggleFrame.Size = UDim2.new(1, 0, 0, 35)
+    ToggleFrame.BackgroundColor3 = Theme.Foreground
+    ToggleFrame.Parent = Content
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 8)
+    Corner.Parent = ToggleFrame
+    
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(1, -60, 1, 0)
+    Label.Position = UDim2.new(0, 10, 0, 0)
+    Label.BackgroundTransparency = 1
+    Label.Text = name
+    Label.TextColor3 = Theme.Text
+    Label.Font = Enum.Font.GothamSemibold
+    Label.TextSize = 12
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = ToggleFrame
+    
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(0, 40, 0, 20)
+    Button.Position = UDim2.new(1, -50, 0.5, -10)
+    Button.BackgroundColor3 = defaultState and Theme.Accent or Color3.fromRGB(50, 50, 50)
+    Button.Text = ""
+    Button.Parent = ToggleFrame
+    
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(1, 0)
+    ButtonCorner.Parent = Button
+    
+    local Indicator = Instance.new("Frame")
+    Indicator.Size = UDim2.new(0, 16, 0, 16)
+    Indicator.Position = defaultState and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+    Indicator.BackgroundColor3 = Color3.new(1, 1, 1)
+    Indicator.Parent = Button
+    
+    local IndCorner = Instance.new("UICorner")
+    IndCorner.CornerRadius = UDim.new(1, 0)
+    IndCorner.Parent = Indicator
+    
+    Button.MouseButton1Click:Connect(function()
+        Config[configKey] = not Config[configKey]
+        local state = Config[configKey]
+        TweenService:Create(Button, TweenInfo.new(0.3), {BackgroundColor3 = state and Theme.Accent or Color3.fromRGB(50, 50, 50)}):Play()
+        TweenService:Create(Indicator, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = state and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}):Play()
+    end)
+end
+
+CreateToggle("Master Switch", Config.Master, "Master")
+CreateToggle("Player ESP", Config.PlayerESP, "PlayerESP")
+CreateToggle("NPC ESP", Config.NPC_ESP, "NPC_ESP")
+CreateToggle("Item ESP", Config.ItemESP, "ItemESP")
+CreateToggle("Show Names", Config.ShowNames, "ShowNames")
+CreateToggle("Show Distance", Config.ShowDistance, "ShowDistance")
+
+-- Dragging
+local dragging, dragInput, dragStart, startPos
+Topbar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
+end)
+
+local ESP_Cache = { Players = {}, Items = {}, NPCs = {} }
+
+local function CreateDrawingObjects(color)
+    local objects = {}
+    local highlight = Instance.new("Highlight")
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.FillTransparency = 0.7
+    highlight.OutlineTransparency = 0
+    highlight.FillColor = color
+    highlight.OutlineColor = color
+    highlight.Enabled = false
+    objects.Highlight = highlight
+    
+    local billboard = Instance.new("BillboardGui")
+    billboard.AlwaysOnTop = true
+    billboard.Size = UDim2.new(0, 200, 0, 50)
+    billboard.Enabled = false
+    objects.Billboard = billboard
+    
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Font = Enum.Font.GothamBold
+    textLabel.TextSize = 11
+    textLabel.TextStrokeTransparency = 0.2
+    textLabel.TextColor3 = color
+    textLabel.TextYAlignment = Enum.TextYAlignment.Bottom
+    textLabel.Parent = billboard
+    objects.TextLabel = textLabel
+    
+    return objects
+end
+
+-- Core ESP Functions
+local function PlayerAdded(player)
+    if player == LocalPlayer then return end
+    ESP_Cache.Players[player] = CreateDrawingObjects(Theme.PlayerColor)
+    local function CharAdded(char)
+        ESP_Cache.Players[player].Highlight.Parent = char
+        local head = char:WaitForChild("Head", 5)
+        if head then
+            ESP_Cache.Players[player].Billboard.StudsOffset = Vector3.new(0, 3, 0)
+            ESP_Cache.Players[player].Billboard.Parent = head
+        end
+    end
+    if player.Character then CharAdded(player.Character) end
+    player.CharacterAdded:Connect(CharAdded)
+end
+
+local function CheckForNPC(obj)
+    if obj:IsA("Model") and obj:FindFirstChildOfClass("Humanoid") and not Players:GetPlayerFromCharacter(obj) then
+        if not ESP_Cache.NPCs[obj] then
+            local esp = CreateDrawingObjects(Theme.NPCColor)
+            esp.Highlight.Parent = obj
+            local head = obj:FindFirstChild("Head") or obj:FindFirstChild("HumanoidRootPart")
+            if head then
+                esp.Billboard.StudsOffset = Vector3.new(0, 3, 0)
+                esp.Billboard.Parent = head
+                ESP_Cache.NPCs[obj] = esp
+            end
+        end
+    end
+end
+
+local function CheckForItem(obj)
+    if (obj:IsA("Tool") or obj:FindFirstChildOfClass("ClickDetector") or obj:FindFirstChildOfClass("ProximityPrompt")) and not ESP_Cache.Items[obj] then
+        if not obj:IsDescendantOf(workspace) then return end
+        local esp = CreateDrawingObjects(Theme.ItemColor)
+        esp.Highlight.Parent = obj
+        local target = obj:IsA("Model") and obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart") or (obj:IsA("BasePart") and obj)
+        if target then
+            esp.Billboard.StudsOffset = Vector3.new(0, 1, 0)
+            esp.Billboard.Parent = target
+            ESP_Cache.Items[obj] = esp
+        end
+    end
+end
+
+for _, p in pairs(Players:GetPlayers()) do PlayerAdded(p) end
+Players.PlayerAdded:Connect(PlayerAdded)
+
+workspace.DescendantAdded:Connect(function(obj)
+    task.wait(0.1)
+    CheckForNPC(obj)
+    CheckForItem(obj)
+end)
+
+RunService.RenderStepped:Connect(function()
+    local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    
+    for player, esp in pairs(ESP_Cache.Players) do
+        local char = player.Character
+        local root = char and char:FindFirstChild("HumanoidRootPart")
+        if Config.Master and Config.PlayerESP and root then
+            esp.Highlight.Enabled = true
+            esp.Billboard.Enabled = true
+            local text = (Config.ShowNames and player.Name or "") .. (Config.ShowDistance and myRoot and "\n[" .. math.floor((root.Position - myRoot.Position).Magnitude) .. "m]" or "")
+            esp.TextLabel.Text = text
+        else
+            esp.Highlight.Enabled = false
+            esp.Billboard.Enabled = false
+        end
+    end
+    
+    for npc, esp in pairs(ESP_Cache.NPCs) do
+        local root = npc:FindFirstChild("HumanoidRootPart")
+        if Config.Master and Config.NPC_ESP and root and npc.Parent then
+            esp.Highlight.Enabled = true
+            esp.Billboard.Enabled = true
+            local text = (Config.ShowNames and npc.Name or "NPC") .. (Config.ShowDistance and myRoot and "\n[" .. math.floor((root.Position - myRoot.Position).Magnitude) .. "m]" or "")
+            esp.TextLabel.Text = text
+        else
+            esp.Highlight.Enabled = false
+            esp.Billboard.Enabled = false
+        end
+    end
+
+    for item, esp in pairs(ESP_Cache.Items) do
+        if Config.Master and Config.ItemESP and item.Parent and not item:IsDescendantOf(LocalPlayer.Character) then
+            local root = item:IsA("Model") and item.PrimaryPart or item:FindFirstChildWhichIsA("BasePart") or (item:IsA("BasePart") and item)
+            if root then
+                esp.Highlight.Enabled = true
+                esp.Billboard.Enabled = true
+                local text = (Config.ShowNames and item.Name or "Item") .. (Config.ShowDistance and myRoot and "\n[" .. math.floor((root.Position - myRoot.Position).Magnitude) .. "m]" or "")
+                esp.TextLabel.Text = text
+            end
+        else
+            esp.Highlight.Enabled = false
+            esp.Billboard.Enabled = false
+        end
+    end
+end)
+
+-- Exit Button with Closing Animation
+ExitButton.MouseButton1Click:Connect(function()
+    local CloseTween = TweenService:Create(MainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+        Position = UDim2.new(0.5, -120, 1.2, 0)
+    })
+    CloseTween:Play()
+    CloseTween.Completed:Wait()
+    ScreenGui:Destroy()
+end)
+
+-- Startup Sequence (Animated Loading)
+task.spawn(function()
+    local dots = {"", ".", "..", "..."}
+    for i = 1, 10 do
+        LoadingText.Text = "Loading Master ESP" .. dots[(i % 4) + 1]
+        task.wait(0.3)
+    end
+    
+    TweenService:Create(LoadingText, TweenInfo.new(0.5), {TextTransparency = 1, TextStrokeTransparency = 1}):Play()
+    task.wait(0.5)
+    LoadingText:Destroy()
+    
+    MainFrame.Visible = true
+    TweenService:Create(MainFrame, TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -120, 0.3, 0)}):Play()
+end)
+
